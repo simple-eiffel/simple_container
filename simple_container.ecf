@@ -16,6 +16,7 @@
 			<void_safety support="all"/>
 		</capability>
 		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
+		<library name="simple_sorter" location="$SIMPLE_EIFFEL\simple_sorter\simple_sorter.ecf"/>
 		<cluster name="src" location=".\src\" recursive="true"/>
 	</target>
 	<target name="simple_container_tests" extends="simple_container">

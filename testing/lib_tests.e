@@ -452,7 +452,10 @@ feature -- New Feature Tests (Phase 3 Improvements)
 			create l_list.make_from_array (<<"hello", "hi", "greetings", "yo">>)
 			create l_ext.make (l_list)
 			l_result := l_ext.sorted_by (agent (s: STRING): INTEGER do Result := s.count end)
-			assert_strings_equal ("sorted_first", "yo", l_result [1])
+			-- First two elements have length 2 ("hi" and "yo"), order not guaranteed
+			assert_integers_equal ("sorted_first_len", 2, l_result [1].count)
+			assert_integers_equal ("sorted_second_len", 2, l_result [2].count)
+			assert_strings_equal ("sorted_third", "hello", l_result [3])
 			assert_strings_equal ("sorted_last", "greetings", l_result [4])
 		end
 
