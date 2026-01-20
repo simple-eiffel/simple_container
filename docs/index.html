@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple_container - Simple Eiffel</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a;
+            --bg-light: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        header { text-align: center; padding: 3rem 0; }
+        header img { width: 120px; margin-bottom: 1rem; }
+        header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        header p { color: var(--text-muted); font-size: 1.1rem; }
+        .badges { margin: 1rem 0; }
+        .badges img { margin: 0 0.25rem; }
+        nav {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        nav a:hover { background: var(--border); }
+        section { margin: 2rem 0; }
+        h2 { color: var(--primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+        h3 { color: var(--text); margin: 1.5rem 0 0.5rem; }
+        pre {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        code { font-family: 'Fira Code', 'Consolas', monospace; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        th { color: var(--primary); }
+        td code { background: var(--bg-light); padding: 0.2rem 0.4rem; border-radius: 4px; }
+        .feature-list { list-style: none; }
+        .feature-list li { padding: 0.5rem 0; }
+        .feature-list li::before { content: "✅ "; }
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+        footer a { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="images/logo.png" alt="simple_container logo">
+            <h1>simple_container</h1>
+            <p>Functional-style collection operations with composable query conditions</p>
+            <div class="badges">
+                <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
+                <img src="https://img.shields.io/badge/Eiffel-25.02-purple.svg" alt="Eiffel 25.02">
+                <img src="https://img.shields.io/badge/DBC-Contracts-green.svg" alt="Design by Contract">
+            </div>
+        </header>
+
+        <nav>
+            <a href="#overview">Overview</a>
+            <a href="#quickstart">Quick Start</a>
+            <a href="#api">API Reference</a>
+            <a href="#features">Features</a>
+            <a href="#installation">Installation</a>
+            <a href="https://github.com/simple-eiffel/simple_container">GitHub</a>
+        </nav>
+
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>simple_container provides functional-style operations for Eiffel collections without cursor manipulation headaches. Instead of manually managing cursors with <code>start</code>, <code>forth</code>, and <code>after</code>, you use composable query conditions and declarative operations like <code>filtered</code>, <code>take</code>, <code>drop</code>, and <code>partition</code>.</p>
+            <p style="margin-top: 1rem;">The library introduces a boolean algebra of query conditions where you can combine predicates using <code>and</code>, <code>or</code>, and <code>not</code> operators.</p>
+        </section>
+
+        <section id="quickstart">
+            <h2>Quick Start</h2>
+            <pre><code>local
+    l_list: ARRAYED_LIST [INTEGER]
+    l_query: SIMPLE_LIST_QUERY [INTEGER]
+    l_cond: SIMPLE_PREDICATE_CONDITION [INTEGER]
+    l_result: ARRAYED_LIST [INTEGER]
+do
+    create l_list.make_from_array (&lt;&lt;1, 2, 3, 4, 5, 6, 7, 8, 9, 10&gt;&gt;)
+    create l_query.make (l_list)
+    create l_cond.make (agent (i: INTEGER): BOOLEAN do Result := i > 5 end)
+    l_result := l_query.filtered (l_cond)
+    -- l_result contains: 6, 7, 8, 9, 10
+end</code></pre>
+        </section>
+
+        <section id="api">
+            <h2>API Reference</h2>
+
+            <h3>SIMPLE_QUERY_CONDITION [G]</h3>
+            <p>Abstract base for composable boolean conditions.</p>
+            <table>
+                <tr><th>Feature</th><th>Description</th></tr>
+                <tr><td><code>satisfied_by (a_item)</code></td><td>Check if item satisfies condition</td></tr>
+                <tr><td><code>conjuncted alias "and"</code></td><td>Combine with AND</td></tr>
+                <tr><td><code>disjuncted alias "or"</code></td><td>Combine with OR</td></tr>
+                <tr><td><code>negated alias "not"</code></td><td>Negate condition</td></tr>
+            </table>
+
+            <h3>SIMPLE_LIST_QUERY [G]</h3>
+            <p>Cursor-safe query operations on lists.</p>
+            <table>
+                <tr><th>Feature</th><th>Description</th></tr>
+                <tr><td><code>filtered (a_condition)</code></td><td>Items satisfying condition</td></tr>
+                <tr><td><code>first_satisfying (a_condition)</code></td><td>First matching item or Void</td></tr>
+                <tr><td><code>all_satisfy (a_condition)</code></td><td>Do all items satisfy?</td></tr>
+                <tr><td><code>any_satisfies (a_condition)</code></td><td>Does any item satisfy?</td></tr>
+                <tr><td><code>count_satisfying (a_condition)</code></td><td>Count of matching items</td></tr>
+                <tr><td><code>mapped (a_function)</code></td><td>Apply function to each item</td></tr>
+                <tr><td><code>folded (a_initial, a_combiner)</code></td><td>Reduce to single value</td></tr>
+            </table>
+
+            <h3>SIMPLE_LIST_EXTENSIONS [G]</h3>
+            <p>Extension operations for lists.</p>
+            <table>
+                <tr><th>Feature</th><th>Description</th></tr>
+                <tr><td><code>partition (a_condition)</code></td><td>Split into satisfying/not satisfying</td></tr>
+                <tr><td><code>group_by (a_key_function)</code></td><td>Group by key</td></tr>
+                <tr><td><code>reversed</code></td><td>Items in reverse order</td></tr>
+                <tr><td><code>take (n)</code></td><td>First n items</td></tr>
+                <tr><td><code>drop (n)</code></td><td>All except first n items</td></tr>
+            </table>
+
+            <h3>SIMPLE_SLICE [G]</h3>
+            <p>Lazy slice view into arrays/lists (no copying).</p>
+            <table>
+                <tr><th>Feature</th><th>Description</th></tr>
+                <tr><td><code>make (a_source, a_start, a_end)</code></td><td>Create slice from range</td></tr>
+                <tr><td><code>item alias "[]" (i)</code></td><td>Item at position</td></tr>
+                <tr><td><code>to_array / to_list</code></td><td>Convert to concrete container</td></tr>
+                <tr><td><code>sub_slice</code></td><td>Create sub-slice</td></tr>
+            </table>
+
+            <h3>SIMPLE_SET_OPERATIONS [G -> HASHABLE]</h3>
+            <p>Set operations on collections.</p>
+            <table>
+                <tr><th>Feature</th><th>Description</th></tr>
+                <tr><td><code>union</code></td><td>All items in either collection</td></tr>
+                <tr><td><code>intersection</code></td><td>Items in both collections</td></tr>
+                <tr><td><code>difference</code></td><td>Items in first but not second</td></tr>
+                <tr><td><code>is_subset</code></td><td>Check if subset</td></tr>
+            </table>
+        </section>
+
+        <section id="features">
+            <h2>Features</h2>
+            <ul class="feature-list">
+                <li>Composable query conditions with boolean algebra</li>
+                <li>Cursor-safe list operations via across iteration</li>
+                <li>Lazy slice evaluation (no copying)</li>
+                <li>Set operations (union, intersection, difference)</li>
+                <li>String conversion utilities</li>
+                <li>Design by Contract throughout</li>
+                <li>Void-safe</li>
+                <li>SCOOP-compatible</li>
+            </ul>
+        </section>
+
+        <section id="installation">
+            <h2>Installation</h2>
+            <p>Add to your <code>.ecf</code> file:</p>
+            <pre><code>&lt;library name="simple_container" location="$SIMPLE_LIBS/simple_container/simple_container.ecf"/&gt;</code></pre>
+        </section>
+
+        <footer>
+            <p>Part of the <a href="https://github.com/simple-eiffel">Simple Eiffel</a> ecosystem</p>
+            <p>MIT License | v1.0.0</p>
+        </footer>
+    </div>
+</body>
+</html>
