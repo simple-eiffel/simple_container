@@ -155,9 +155,32 @@ end</code></pre>
                 <tr><th>Feature</th><th>Description</th></tr>
                 <tr><td><code>partition (a_condition)</code></td><td>Split into satisfying/not satisfying</td></tr>
                 <tr><td><code>group_by (a_key_function)</code></td><td>Group by key</td></tr>
+                <tr><td><code>min_by (a_selector)</code></td><td>Element with minimum selector value</td></tr>
+                <tr><td><code>max_by (a_selector)</code></td><td>Element with maximum selector value</td></tr>
+                <tr><td><code>index_of_first (a_condition)</code></td><td>Index of first matching element</td></tr>
+                <tr><td><code>index_of_last (a_condition)</code></td><td>Index of last matching element</td></tr>
                 <tr><td><code>reversed</code></td><td>Items in reverse order</td></tr>
                 <tr><td><code>take (n)</code></td><td>First n items</td></tr>
                 <tr><td><code>drop (n)</code></td><td>All except first n items</td></tr>
+                <tr><td><code>zip (a_other)</code></td><td>Combine lists element-by-element</td></tr>
+                <tr><td><code>chunked (a_size)</code></td><td>Split into fixed-size sublists</td></tr>
+                <tr><td><code>windowed (a_size)</code></td><td>Sliding window sublists</td></tr>
+            </table>
+
+            <h3>SIMPLE_SORTABLE_LIST_EXTENSIONS [G]</h3>
+            <p>Sorting operations for lists.</p>
+            <table>
+                <tr><th>Feature</th><th>Description</th></tr>
+                <tr><td><code>sorted_by (a_key)</code></td><td>Elements sorted by key (ascending)</td></tr>
+                <tr><td><code>sorted_by_descending (a_key)</code></td><td>Elements sorted by key (descending)</td></tr>
+            </table>
+
+            <h3>SIMPLE_HASHABLE_LIST_EXTENSIONS [G -> HASHABLE]</h3>
+            <p>Distinct operations for hashable lists.</p>
+            <table>
+                <tr><th>Feature</th><th>Description</th></tr>
+                <tr><td><code>distinct</code></td><td>Elements with duplicates removed</td></tr>
+                <tr><td><code>distinct_by (a_key)</code></td><td>Elements with duplicates by key removed</td></tr>
             </table>
 
             <h3>SIMPLE_SLICE [G]</h3>
@@ -187,6 +210,9 @@ end</code></pre>
                 <li>Composable query conditions with boolean algebra</li>
                 <li>Cursor-safe list operations via across iteration</li>
                 <li>Lazy slice evaluation (no copying)</li>
+                <li>LINQ-style operations (min_by, max_by, zip, chunked, windowed)</li>
+                <li>Sorting by key selector (sorted_by, sorted_by_descending)</li>
+                <li>Duplicate removal (distinct, distinct_by)</li>
                 <li>Set operations (union, intersection, difference)</li>
                 <li>String conversion utilities</li>
                 <li>Design by Contract throughout</li>

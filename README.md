@@ -20,10 +20,10 @@
 ## Status
 
 ✅ **Production Ready** — v1.0.0
-- 12 classes
-- **129 tests total**
-  - 100 internal (DBC contract assertions)
-  - 29 external (unit tests)
+- 14 classes
+- **217 tests total**
+  - 166 internal (DBC contract assertions)
+  - 51 external (unit tests)
 
 ## Overview
 
@@ -98,11 +98,38 @@ Extension operations for lists.
 | `make (a_list)` | Create extensions wrapper |
 | `partition (a_condition)` | Split into satisfying/not satisfying |
 | `group_by (a_key_function)` | Group by key |
+| `min_by (a_selector)` | Element with minimum selector value |
+| `max_by (a_selector)` | Element with maximum selector value |
+| `index_of_first (a_condition)` | Index of first matching element (1-based) |
+| `index_of_last (a_condition)` | Index of last matching element (1-based) |
 | `reversed` | Items in reverse order |
 | `take (n)` | First n items |
 | `drop (n)` | All except first n items |
 | `take_while (a_condition)` | Leading items satisfying condition |
 | `drop_while (a_condition)` | Items after leading sequence |
+| `zip (a_other)` | Combine with other list element-by-element |
+| `chunked (a_size)` | Split into fixed-size sublists |
+| `windowed (a_size)` | Sliding window sublists |
+
+### SIMPLE_SORTABLE_LIST_EXTENSIONS [G]
+
+Sorting operations for lists.
+
+| Feature | Description |
+|---------|-------------|
+| `make (a_list)` | Create extensions wrapper |
+| `sorted_by (a_key)` | Elements sorted by key (ascending) |
+| `sorted_by_descending (a_key)` | Elements sorted by key (descending) |
+
+### SIMPLE_HASHABLE_LIST_EXTENSIONS [G -> HASHABLE]
+
+Distinct operations for lists of hashable elements.
+
+| Feature | Description |
+|---------|-------------|
+| `make (a_list)` | Create extensions wrapper |
+| `distinct` | Elements with duplicates removed |
+| `distinct_by (a_key)` | Elements with duplicates by key removed |
 
 ### SIMPLE_SLICE [G]
 
@@ -146,6 +173,9 @@ Convert containers to/from strings.
 - ✅ Composable query conditions with boolean algebra
 - ✅ Cursor-safe list operations via across iteration
 - ✅ Lazy slice evaluation (no copying)
+- ✅ LINQ-style operations (min_by, max_by, zip, chunked, windowed)
+- ✅ Sorting by key selector (sorted_by, sorted_by_descending)
+- ✅ Duplicate removal (distinct, distinct_by)
 - ✅ Set operations (union, intersection, difference)
 - ✅ String conversion utilities
 - ✅ Design by Contract throughout

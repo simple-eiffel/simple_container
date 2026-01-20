@@ -1,0 +1,25 @@
+# EiffelStudio generated files
+EIFGENs/
+
+# IDE files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Build artifacts
+*.obj
+*.exe
+*.dll
+*.o
+*.so
+
+# Backup files
+*.bak
+*.orig
