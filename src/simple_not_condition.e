@@ -2,7 +2,7 @@ note
 	description: "Negation of a condition"
 
 class
-	SIMPLE_NOT_CONDITION [G]
+	SIMPLE_NOT_CONDITION [G -> detachable separate ANY]
 
 inherit
 	SIMPLE_QUERY_CONDITION [G]
@@ -14,8 +14,6 @@ feature {NONE} -- Initialization
 
 	make (a_operand: SIMPLE_QUERY_CONDITION [G])
 			-- Create with operand to negate
-		require
-			operand_exists: a_operand /= Void
 		do
 			operand := a_operand
 		ensure
@@ -34,8 +32,6 @@ feature -- Composition
 
 	conjuncted alias "and" (a_other: SIMPLE_QUERY_CONDITION [G]): SIMPLE_AND_CONDITION [G]
 			-- Condition satisfied when both self AND `a_other` satisfied
-		require else
-			other_exists: a_other /= Void
 		do
 			create Result.make (Current, a_other)
 		ensure then
@@ -44,8 +40,6 @@ feature -- Composition
 
 	disjuncted alias "or" (a_other: SIMPLE_QUERY_CONDITION [G]): SIMPLE_OR_CONDITION [G]
 			-- Condition satisfied when self OR `a_other` satisfied
-		require else
-			other_exists: a_other /= Void
 		do
 			create Result.make (Current, a_other)
 		ensure then

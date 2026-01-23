@@ -16,12 +16,14 @@
 			<void_safety support="all"/>
 		</capability>
 		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
+		<library name="simple_mml" location="$SIMPLE_EIFFEL\simple_mml\simple_mml.ecf"/>
 		<library name="simple_sorter" location="$SIMPLE_EIFFEL\simple_sorter\simple_sorter.ecf"/>
 		<cluster name="src" location=".\src\" recursive="true"/>
 	</target>
 	<target name="simple_container_tests" extends="simple_container">
 		<root class="TEST_APP" feature="make"/>
 		<library name="testing" location="$ISE_LIBRARY\library\testing\testing.ecf"/>
+				<library name="simple_testing" location="$SIMPLE_EIFFEL\simple_testing\simple_testing.ecf"/>
 		<cluster name="test" location=".\testing\" recursive="true"/>
 	</target>
 </system>

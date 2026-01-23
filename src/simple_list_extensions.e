@@ -2,7 +2,7 @@ note
 	description: "Extension methods for lists"
 
 class
-	SIMPLE_LIST_EXTENSIONS [G]
+	SIMPLE_LIST_EXTENSIONS [G -> detachable separate ANY]
 
 create
 	make
@@ -11,20 +11,39 @@ feature {NONE} -- Initialization
 
 	make (a_list: LIST [G])
 			-- Create extensions wrapper for `a_list`
-		require
-			list_exists: a_list /= Void
 		do
 			target := a_list
 		ensure
 			target_set: target = a_list
+			model_matches: model.count = a_list.count
+		end
+
+feature -- Model
+
+	model: MML_SEQUENCE [G]
+			-- Mathematical model of target list contents
+		do
+			create Result
+			across target as ic loop
+				Result := Result & ic
+			end
+		ensure
+			count_matches: Result.count = target.count
+		end
+
+	list_model (a_list: LIST [G]): MML_SEQUENCE [G]
+			-- Model of a result list for postconditions
+		do
+			create Result
+			across a_list as ic loop
+				Result := Result & ic
+			end
 		end
 
 feature -- Partitioning
 
 	partition (a_condition: SIMPLE_QUERY_CONDITION [G]): TUPLE [satisfying: ARRAYED_LIST [G]; not_satisfying: ARRAYED_LIST [G]]
 			-- Split into items that satisfy/don't satisfy condition
-		require
-			condition_exists: a_condition /= Void
 		local
 			l_satisfying, l_not_satisfying: ARRAYED_LIST [G]
 		do
@@ -41,12 +60,11 @@ feature -- Partitioning
 		ensure
 			result_exists: Result /= Void
 			total_preserved: Result.satisfying.count + Result.not_satisfying.count = target.count
+			model_partition: list_model (Result.satisfying).count + list_model (Result.not_satisfying).count = model.count
 		end
 
 	group_by (a_key_function: FUNCTION [G, HASHABLE]): HASH_TABLE [ARRAYED_LIST [G], HASHABLE]
 			-- Group items by key
-		require
-			key_function_exists: a_key_function /= Void
 		local
 			l_key: HASHABLE
 			l_total: INTEGER
@@ -75,8 +93,6 @@ feature -- Extrema
 
 	min_by (a_selector: FUNCTION [G, COMPARABLE]): detachable G
 			-- Element with minimum selector value, or Void if empty
-		require
-			selector_exists: a_selector /= Void
 		local
 			l_min_value: detachable COMPARABLE
 			l_current_value: COMPARABLE
@@ -91,12 +107,11 @@ feature -- Extrema
 		ensure
 			empty_means_void: target.is_empty implies Result = Void
 			non_empty_means_attached: not target.is_empty implies Result /= Void
+			result_in_model: Result /= Void implies model.range.has (Result)
 		end
 
 	max_by (a_selector: FUNCTION [G, COMPARABLE]): detachable G
 			-- Element with maximum selector value, or Void if empty
-		require
-			selector_exists: a_selector /= Void
 		local
 			l_max_value: detachable COMPARABLE
 			l_current_value: COMPARABLE
@@ -111,14 +126,13 @@ feature -- Extrema
 		ensure
 			empty_means_void: target.is_empty implies Result = Void
 			non_empty_means_attached: not target.is_empty implies Result /= Void
+			result_in_model: Result /= Void implies model.range.has (Result)
 		end
 
 feature -- Index Finding
 
 	index_of_first (a_condition: SIMPLE_QUERY_CONDITION [G]): INTEGER
 			-- Index of first matching element (1-based), or 0 if none
-		require
-			condition_exists: a_condition /= Void
 		local
 			i: INTEGER
 		do
@@ -130,12 +144,11 @@ feature -- Index Finding
 			end
 		ensure
 			valid_or_zero: Result >= 0 and Result <= target.count
+			found_means_valid: Result > 0 implies a_condition.satisfied_by (target [Result])
 		end
 
 	index_of_last (a_condition: SIMPLE_QUERY_CONDITION [G]): INTEGER
 			-- Index of last matching element (1-based), or 0 if none
-		require
-			condition_exists: a_condition /= Void
 		local
 			i: INTEGER
 		do
@@ -149,6 +162,7 @@ feature -- Index Finding
 			end
 		ensure
 			valid_or_zero: Result >= 0 and Result <= target.count
+			found_means_valid: Result > 0 implies a_condition.satisfied_by (target [Result])
 		end
 
 feature -- Ordering
@@ -183,6 +197,7 @@ feature -- Taking/Dropping
 		ensure
 			result_exists: Result /= Void
 			bounded_count: Result.count <= n and Result.count <= target.count
+			exact_count: Result.count = n.min (target.count)
 		end
 
 	drop (n: INTEGER): ARRAYED_LIST [G]
@@ -205,8 +220,6 @@ feature -- Taking/Dropping
 
 	take_while (a_condition: SIMPLE_QUERY_CONDITION [G]): ARRAYED_LIST [G]
 			-- Leading items that satisfy `a_condition`
-		require
-			condition_exists: a_condition /= Void
 		do
 			create Result.make (target.count // 2)
 			across target as ic until not a_condition.satisfied_by (ic) loop
@@ -215,12 +228,11 @@ feature -- Taking/Dropping
 		ensure
 			result_exists: Result /= Void
 			bounded: Result.count <= target.count
+			all_satisfy: across Result as ic all a_condition.satisfied_by (ic) end
 		end
 
 	drop_while (a_condition: SIMPLE_QUERY_CONDITION [G]): ARRAYED_LIST [G]
 			-- Items after leading sequence satisfying `a_condition`
-		require
-			condition_exists: a_condition /= Void
 		local
 			l_dropping: BOOLEAN
 		do
@@ -244,8 +256,6 @@ feature -- Combining
 	zip (a_other: LIST [ANY]): ARRAYED_LIST [TUPLE [first: G; second: ANY]]
 			-- Combine with other list element-by-element
 			-- Result length is minimum of both list lengths
-		require
-			other_exists: a_other /= Void
 		local
 			l_count, i: INTEGER
 		do
@@ -313,6 +323,7 @@ feature -- Chunking
 		ensure
 			result_exists: Result /= Void
 			windows_exact_size: across Result as w all w.count = a_size end
+			correct_window_count: Result.count = (target.count - a_size + 1).max (0)
 		end
 
 feature {NONE} -- Implementation
@@ -322,5 +333,6 @@ feature {NONE} -- Implementation
 
 invariant
 	target_exists: target /= Void
+	model_consistent: model.count = target.count
 
 end

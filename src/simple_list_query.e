@@ -2,7 +2,7 @@ note
 	description: "Query operations on lists with cursor safety"
 
 class
-	SIMPLE_LIST_QUERY [G]
+	SIMPLE_LIST_QUERY [G -> detachable separate ANY]
 
 create
 	make
@@ -10,9 +10,7 @@ create
 feature {NONE} -- Initialization
 
 	make (a_list: LIST [G])
-			-- Create query wrapper for `a_list`
-		require
-			list_exists: a_list /= Void
+			-- Create query wrapper for `a_list`.
 		do
 			target := a_list
 		ensure
@@ -22,9 +20,7 @@ feature {NONE} -- Initialization
 feature -- Queries (Cursor-Safe via across)
 
 	filtered (a_condition: SIMPLE_QUERY_CONDITION [G]): ARRAYED_LIST [G]
-			-- Items satisfying `a_condition`
-		require
-			condition_exists: a_condition /= Void
+			-- Items satisfying `a_condition`.
 		do
 			create Result.make (target.count // 2)
 			across target as ic loop
@@ -33,14 +29,12 @@ feature -- Queries (Cursor-Safe via across)
 				end
 			end
 		ensure
-			result_exists: Result /= Void
 			bounded: Result.count <= target.count
+			result_subset: result_model (Result).range <= model.range
 		end
 
 	first_satisfying (a_condition: SIMPLE_QUERY_CONDITION [G]): detachable G
-			-- First item satisfying `a_condition`, or Void
-		require
-			condition_exists: a_condition /= Void
+			-- First item satisfying `a_condition`, or Void.
 		local
 			l_found: BOOLEAN
 		do
@@ -50,33 +44,34 @@ feature -- Queries (Cursor-Safe via across)
 					l_found := True
 				end
 			end
+		ensure
+			result_in_model: Result /= Void implies model.range.has (Result)
+			result_satisfies: attached Result as r implies a_condition.satisfied_by (r)
 		end
 
 	all_satisfy (a_condition: SIMPLE_QUERY_CONDITION [G]): BOOLEAN
 			-- Do all items satisfy `a_condition`?
-		require
-			condition_exists: a_condition /= Void
 		do
 			Result := True
 			across target as ic until not Result loop
 				Result := a_condition.satisfied_by (ic)
 			end
+		ensure
+			empty_is_true: target.is_empty implies Result
 		end
 
 	any_satisfies (a_condition: SIMPLE_QUERY_CONDITION [G]): BOOLEAN
 			-- Does any item satisfy `a_condition`?
-		require
-			condition_exists: a_condition /= Void
 		do
 			across target as ic until Result loop
 				Result := a_condition.satisfied_by (ic)
 			end
+		ensure
+			empty_is_false: target.is_empty implies not Result
 		end
 
 	count_satisfying (a_condition: SIMPLE_QUERY_CONDITION [G]): INTEGER
-			-- Number of items satisfying `a_condition`
-		require
-			condition_exists: a_condition /= Void
+			-- Number of items satisfying `a_condition`.
 		do
 			across target as ic loop
 				if a_condition.satisfied_by (ic) then
@@ -91,29 +86,45 @@ feature -- Queries (Cursor-Safe via across)
 feature -- Mapping (Cursor-Safe via across)
 
 	mapped (a_function: FUNCTION [G, ANY]): ARRAYED_LIST [ANY]
-			-- Result of applying `a_function` to each item
-		require
-			function_exists: a_function /= Void
+			-- Result of applying `a_function` to each item.
 		do
 			create Result.make (target.count)
 			across target as ic loop
 				Result.extend (a_function.item ([ic]))
 			end
 		ensure
-			result_exists: Result /= Void
 			same_count: Result.count = target.count
+			model_same_count: Result.count = model.count
 		end
 
 feature -- Reduction (Cursor-Safe via across)
 
 	folded (a_initial: ANY; a_combiner: FUNCTION [ANY, G, ANY]): detachable ANY
-			-- Result of combining all items starting with `a_initial`
-		require
-			combiner_exists: a_combiner /= Void
+			-- Result of combining all items starting with `a_initial`.
 		do
 			Result := a_initial
 			across target as ic loop
 				Result := a_combiner.item ([Result, ic])
+			end
+		end
+
+feature -- Model
+
+	model: MML_SEQUENCE [G]
+			-- Mathematical model of target list contents.
+		do
+			create Result
+			across target as ic loop
+				Result := Result & ic
+			end
+		end
+
+	result_model (a_list: LIST [G]): MML_SEQUENCE [G]
+			-- Model of a result list for postconditions.
+		do
+			create Result
+			across a_list as ic loop
+				Result := Result & ic
 			end
 		end
 
@@ -123,6 +134,7 @@ feature {NONE} -- Implementation
 			-- The wrapped list
 
 invariant
-	target_exists: target /= Void
+	target_attached: target /= Void
+	model_consistent: model.count = target.count
 
 end

@@ -11,12 +11,33 @@ feature {NONE} -- Initialization
 
 	make (a_list: LIST [G])
 			-- Create extensions wrapper for `a_list`
-		require
-			list_exists: a_list /= Void
 		do
 			target := a_list
 		ensure
 			target_set: target = a_list
+			model_matches: model.count = a_list.count
+		end
+
+feature -- Model
+
+	model: MML_SEQUENCE [G]
+			-- Mathematical model of target list contents
+		do
+			create Result
+			across target as ic loop
+				Result := Result & ic
+			end
+		ensure
+			count_matches: Result.count = target.count
+		end
+
+	list_model (a_list: LIST [G]): MML_SEQUENCE [G]
+			-- Model of a result list for postconditions
+		do
+			create Result
+			across a_list as ic loop
+				Result := Result & ic
+			end
 		end
 
 feature -- Distinct
@@ -41,8 +62,6 @@ feature -- Distinct
 
 	distinct_by (a_key: FUNCTION [G, HASHABLE]): ARRAYED_LIST [G]
 			-- Elements with duplicates by key removed (preserves first occurrence)
-		require
-			key_function_exists: a_key /= Void
 		local
 			l_seen: ARRAYED_SET [HASHABLE]
 			l_key: HASHABLE
@@ -68,5 +87,6 @@ feature {NONE} -- Implementation
 
 invariant
 	target_exists: target /= Void
+	model_consistent: model.count = target.count
 
 end

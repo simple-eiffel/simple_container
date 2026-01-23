@@ -2,7 +2,7 @@ note
 	description: "Disjunction of two conditions"
 
 class
-	SIMPLE_OR_CONDITION [G]
+	SIMPLE_OR_CONDITION [G -> detachable separate ANY]
 
 inherit
 	SIMPLE_QUERY_CONDITION [G]
@@ -14,9 +14,6 @@ feature {NONE} -- Initialization
 
 	make (a_left, a_right: SIMPLE_QUERY_CONDITION [G])
 			-- Create with two operands
-		require
-			left_exists: a_left /= Void
-			right_exists: a_right /= Void
 		do
 			left := a_left
 			right := a_right
@@ -37,8 +34,6 @@ feature -- Composition
 
 	conjuncted alias "and" (a_other: SIMPLE_QUERY_CONDITION [G]): SIMPLE_AND_CONDITION [G]
 			-- Condition satisfied when both self AND `a_other` satisfied
-		require else
-			other_exists: a_other /= Void
 		do
 			create Result.make (Current, a_other)
 		ensure then
@@ -47,8 +42,6 @@ feature -- Composition
 
 	disjuncted alias "or" (a_other: SIMPLE_QUERY_CONDITION [G]): SIMPLE_OR_CONDITION [G]
 			-- Condition satisfied when self OR `a_other` satisfied
-		require else
-			other_exists: a_other /= Void
 		do
 			create Result.make (Current, a_other)
 		ensure then

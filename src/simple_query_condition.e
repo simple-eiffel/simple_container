@@ -2,7 +2,7 @@ note
 	description: "Abstract composable boolean condition for filtering"
 
 deferred class
-	SIMPLE_QUERY_CONDITION [G]
+	SIMPLE_QUERY_CONDITION [G -> detachable separate ANY]
 
 feature -- Evaluation
 

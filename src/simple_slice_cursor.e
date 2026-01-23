@@ -2,7 +2,7 @@ note
 	description: "Cursor for iterating over a slice"
 
 class
-	SIMPLE_SLICE_CURSOR [G]
+	SIMPLE_SLICE_CURSOR [G -> detachable separate ANY]
 
 inherit
 	ITERATION_CURSOR [G]
@@ -14,8 +14,6 @@ feature {NONE} -- Initialization
 
 	make (a_slice: SIMPLE_SLICE [G])
 			-- Create cursor for `a_slice`
-		require
-			slice_exists: a_slice /= Void
 		do
 			slice := a_slice
 			position := 1

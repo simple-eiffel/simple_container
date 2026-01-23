@@ -2,15 +2,12 @@ note
 	description: "Convert containers to/from strings"
 
 class
-	SIMPLE_STRING_CONVERSIONS [G]
+	SIMPLE_STRING_CONVERSIONS [G -> detachable separate ANY]
 
 feature -- To String
 
 	joined (a_items: ITERABLE [G]; a_separator: READABLE_STRING_GENERAL): STRING_32
-			-- Items converted and joined with separator
-		require
-			items_exists: a_items /= Void
-			separator_exists: a_separator /= Void
+			-- Items converted and joined with separator.
 		do
 			create Result.make_empty
 			across a_items as ic loop
@@ -19,17 +16,11 @@ feature -- To String
 				end
 				Result.append_string_general (item_to_string (ic))
 			end
-		ensure
-			result_exists: Result /= Void
 		end
 
 	joined_with_format (a_items: ITERABLE [G]; a_separator: READABLE_STRING_GENERAL;
 			a_formatter: FUNCTION [G, READABLE_STRING_GENERAL]): STRING_32
-			-- Items formatted and joined
-		require
-			items_exists: a_items /= Void
-			separator_exists: a_separator /= Void
-			formatter_exists: a_formatter /= Void
+			-- Items formatted and joined.
 		do
 			create Result.make_empty
 			across a_items as ic loop
@@ -38,18 +29,13 @@ feature -- To String
 				end
 				Result.append_string_general (a_formatter.item ([ic]))
 			end
-		ensure
-			result_exists: Result /= Void
 		end
 
 feature -- From String
 
 	split_to_list (a_string: READABLE_STRING_GENERAL; a_separator: CHARACTER_32;
 			a_converter: FUNCTION [READABLE_STRING_GENERAL, G]): ARRAYED_LIST [G]
-			-- Parse string into list using converter
-		require
-			string_exists: a_string /= Void
-			converter_exists: a_converter /= Void
+			-- Parse string into list using converter.
 		local
 			l_parts: LIST [READABLE_STRING_GENERAL]
 		do
@@ -58,8 +44,6 @@ feature -- From String
 			across l_parts as ic loop
 				Result.extend (a_converter.item ([ic]))
 			end
-		ensure
-			result_exists: Result /= Void
 		end
 
 feature {NONE} -- Implementation

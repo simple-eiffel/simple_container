@@ -11,8 +11,6 @@ feature {NONE} -- Initialization
 
 	make (a_cursored: LINEAR [ANY])
 			-- Save cursor from `a_cursored`
-		require
-			cursored_exists: a_cursored /= Void
 		do
 			target := a_cursored
 			if attached {CURSOR_STRUCTURE [ANY]} a_cursored as l_cs then

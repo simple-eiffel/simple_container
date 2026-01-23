@@ -2,7 +2,7 @@ note
 	description: "Array/list slice with lazy evaluation"
 
 class
-	SIMPLE_SLICE [G]
+	SIMPLE_SLICE [G -> detachable separate ANY]
 
 inherit
 	ITERABLE [G]
@@ -15,7 +15,6 @@ feature {NONE} -- Initialization
 	make (a_source: READABLE_INDEXABLE [G]; a_start, a_end: INTEGER)
 			-- Create slice from `a_start` to `a_end` (inclusive)
 		require
-			source_exists: a_source /= Void
 			valid_start: a_start >= a_source.lower
 			valid_end: a_end <= a_source.upper
 			valid_range: a_start <= a_end + 1
@@ -32,7 +31,6 @@ feature {NONE} -- Initialization
 	make_from_end (a_source: READABLE_INDEXABLE [G]; a_start_from_end, a_count: INTEGER)
 			-- Create slice of `a_count` items starting `a_start_from_end` from end
 		require
-			source_exists: a_source /= Void
 			non_negative_offset: a_start_from_end >= 0
 			positive_count: a_count > 0
 			valid_range: a_start_from_end + a_count <= (a_source.upper - a_source.lower + 1)
@@ -42,6 +40,23 @@ feature {NONE} -- Initialization
 			start_index := end_index - a_count + 1
 		ensure
 			source_set: source = a_source
+			model_consistent: model.count = count
+		end
+
+feature -- Model
+
+	model: MML_SEQUENCE [G]
+			-- Mathematical model of slice contents
+		local
+			i: INTEGER
+		do
+			create Result
+			from i := 1 until i > count loop
+				Result := Result & item (i)
+				i := i + 1
+			end
+		ensure
+			count_matches: Result.count = count
 		end
 
 feature -- Access
@@ -52,6 +67,9 @@ feature -- Access
 			valid_index: valid_index (i)
 		do
 			Result := source [start_index + i - 1]
+		ensure
+			result_in_model: model.has (Result)
+			correct_item: Result = model [i]
 		end
 
 	first: G
@@ -60,6 +78,8 @@ feature -- Access
 			not_empty: not is_empty
 		do
 			Result := source [start_index]
+		ensure
+			result_is_first: Result = model [1]
 		end
 
 	last: G
@@ -68,6 +88,8 @@ feature -- Access
 			not_empty: not is_empty
 		do
 			Result := source [end_index]
+		ensure
+			result_is_last: Result = model [count]
 		end
 
 feature -- Measurement
@@ -166,5 +188,6 @@ feature {SIMPLE_SLICE_CURSOR} -- Implementation Access
 invariant
 	source_exists: source /= Void
 	count_consistent: count = (end_index - start_index + 1).max (0)
+	model_consistent: model.count = count
 
 end
