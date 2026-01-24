@@ -1,0 +1,378 @@
+note
+	description: "Extension methods for lists"
+
+class interface
+	SIMPLE_LIST_EXTENSIONS [G -> detachable separate ANY]
+
+create 
+	make (a_list: LIST [G])
+			-- Create extensions wrapper for `a_list`
+		ensure
+			target_set: target = a_list
+			model_matches: model.count = a_list.count
+
+feature -- Access
+
+	generating_type: TYPE [detachable SIMPLE_LIST_EXTENSIONS [G]]
+			-- Type of current object
+			-- (type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generating_type_not_void: Result /= Void
+
+	generator: STRING_8
+			-- Name of current object's generating class
+			-- (base class of the type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generator_not_void: Result /= Void
+			generator_not_empty: not Result.is_empty
+	
+feature -- Comparison
+
+	frozen deep_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void
+			-- or attached to isomorphic object structures?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			shallow_implies_deep: standard_equal (a, b) implies Result
+			both_or_none_void: (a = Void) implies (Result = (b = Void))
+			same_type: (Result and (a /= Void)) implies (b /= Void and then a.same_type (b))
+			symmetric: Result implies deep_equal (b, a)
+
+	frozen equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached
+			-- to objects considered equal?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.is_equal (b))
+
+	frozen is_deep_equal alias "≡≡≡" (other: SIMPLE_LIST_EXTENSIONS [G]): BOOLEAN
+			-- Are `Current` and `other` attached to isomorphic object structures?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			shallow_implies_deep: standard_is_equal (other) implies Result
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.is_deep_equal (Current)
+
+	is_equal (other: SIMPLE_LIST_EXTENSIONS [G]): BOOLEAN
+			-- Is `other` attached to an object considered
+			-- equal to current object?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			symmetric: Result implies other ~ Current
+			consistent: standard_is_equal (other) implies Result
+
+	frozen standard_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached to
+			-- field-by-field identical objects of the same type?
+			-- Always uses default object comparison criterion.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.standard_is_equal (b))
+
+	frozen standard_is_equal alias "≜" (other: SIMPLE_LIST_EXTENSIONS [G]): BOOLEAN
+			-- Is `other` attached to an object of the same type
+			-- as current object, and field-by-field identical to it?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.standard_is_equal (Current)
+	
+feature -- Status report
+
+	conforms_to (other: ANY): BOOLEAN
+			-- Does type of current object conform to type
+			-- of `other` (as per Eiffel: The Language, chapter 13)?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+
+	same_type (other: ANY): BOOLEAN
+			-- Is type of current object identical to type of `other`?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			definition: Result = (conforms_to (other) and other.conforms_to (Current))
+	
+feature -- Duplication
+
+	copy (other: SIMPLE_LIST_EXTENSIONS [G])
+			-- Update current object using fields of object attached
+			-- to `other`, so as to yield equal objects.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_equal: Current ~ other
+
+	frozen deep_copy (other: SIMPLE_LIST_EXTENSIONS [G])
+			-- Effect equivalent to that of:
+			--		`copy` (`other` . `deep_twin`)
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			deep_equal: deep_equal (Current, other)
+
+	frozen deep_twin: SIMPLE_LIST_EXTENSIONS [G]
+			-- New object structure recursively duplicated from Current.
+			-- (from ANY)
+		ensure -- from ANY
+			deep_twin_not_void: Result /= Void
+			deep_equal: deep_equal (Current, Result)
+
+	frozen standard_copy (other: SIMPLE_LIST_EXTENSIONS [G])
+			-- Copy every field of `other` onto corresponding field
+			-- of current object.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_standard_equal: standard_is_equal (other)
+
+	frozen standard_twin: SIMPLE_LIST_EXTENSIONS [G]
+			-- New object field-by-field identical to `other`.
+			-- Always uses default copying semantics.
+			-- (from ANY)
+		ensure -- from ANY
+			standard_twin_not_void: Result /= Void
+			equal: standard_equal (Result, Current)
+
+	frozen twin: SIMPLE_LIST_EXTENSIONS [G]
+			-- New object equal to `Current`
+			-- `twin` calls `copy`; to change copying/twinning semantics, redefine `copy`.
+			-- (from ANY)
+		ensure -- from ANY
+			twin_not_void: Result /= Void
+			is_equal: Result ~ Current
+	
+feature -- Basic operations
+
+	frozen default: detachable SIMPLE_LIST_EXTENSIONS [G]
+			-- Default value of object's type
+			-- (from ANY)
+
+	frozen default_pointer: POINTER
+			-- Default value of type `POINTER`
+			-- (Avoid the need to write `p`.`default` for
+			-- some `p` of type `POINTER`.)
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	default_rescue
+			-- Process exception for routines with no Rescue clause.
+			-- (Default: do nothing.)
+			-- (from ANY)
+
+	frozen do_nothing
+			-- Execute a null action.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+	
+feature -- Chunking
+
+	chunked (a_size: INTEGER_32): ARRAYED_LIST [ARRAYED_LIST [G]]
+			-- Split into sublists of given size (last may be smaller)
+		require
+			positive_size: a_size > 0
+		ensure
+			result_exists: Result /= Void
+			chunks_bounded: across
+					Result as c
+				all
+					c.count <= a_size
+				end
+
+	windowed (a_size: INTEGER_32): ARRAYED_LIST [ARRAYED_LIST [G]]
+			-- Sliding window sublists of given size
+		require
+			positive_size: a_size > 0
+		ensure
+			result_exists: Result /= Void
+			windows_exact_size: across
+					Result as w
+				all
+					w.count = a_size
+				end
+			correct_window_count: Result.count = (target.count - a_size + 1).max (0)
+	
+feature -- Combining
+
+	zip (a_other: LIST [ANY]): ARRAYED_LIST [TUPLE [first: G; second: ANY]]
+			-- Combine with other list element-by-element
+			-- Result length is minimum of both list lengths
+		ensure
+			result_exists: Result /= Void
+			correct_count: Result.count = target.count.min (a_other.count)
+	
+feature -- Extrema
+
+	max_by (a_selector: FUNCTION [G, COMPARABLE]): detachable G
+			-- Element with maximum selector value, or Void if empty
+		ensure
+			empty_means_void: target.is_empty implies Result = Void
+			non_empty_means_attached: not target.is_empty implies Result /= Void
+			result_in_model: Result /= Void implies model.range.has (Result)
+
+	min_by (a_selector: FUNCTION [G, COMPARABLE]): detachable G
+			-- Element with minimum selector value, or Void if empty
+		ensure
+			empty_means_void: target.is_empty implies Result = Void
+			non_empty_means_attached: not target.is_empty implies Result /= Void
+			result_in_model: Result /= Void implies model.range.has (Result)
+	
+feature -- Index Finding
+
+	index_of_first (a_condition: SIMPLE_QUERY_CONDITION [G]): INTEGER_32
+			-- Index of first matching element (1-based), or 0 if none
+		ensure
+			valid_or_zero: Result >= 0 and Result <= target.count
+			found_means_valid: Result > 0 implies a_condition.satisfied_by (target [Result])
+
+	index_of_last (a_condition: SIMPLE_QUERY_CONDITION [G]): INTEGER_32
+			-- Index of last matching element (1-based), or 0 if none
+		ensure
+			valid_or_zero: Result >= 0 and Result <= target.count
+			found_means_valid: Result > 0 implies a_condition.satisfied_by (target [Result])
+	
+feature -- Model
+
+	list_model (a_list: LIST [G]): MML_SEQUENCE [G]
+			-- Model of a result list for postconditions
+
+	model: MML_SEQUENCE [G]
+			-- Mathematical model of target list contents
+		ensure
+			count_matches: Result.count = target.count
+	
+feature -- Ordering
+
+	reversed: ARRAYED_LIST [G]
+			-- Items in reverse order
+		ensure
+			result_exists: Result /= Void
+			same_count: Result.count = target.count
+	
+feature -- Output
+
+	Io: STD_FILES
+			-- Handle to standard file setup
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			io_not_void: Result /= Void
+
+	out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			out_not_void: Result /= Void
+
+	print (o: detachable ANY)
+			-- Write terse external representation of `o`
+			-- on standard output.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	frozen tagged_out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			tagged_out_not_void: Result /= Void
+	
+feature -- Partitioning
+
+	group_by (a_key_function: FUNCTION [G, HASHABLE]): HASH_TABLE [ARRAYED_LIST [G], HASHABLE]
+			-- Group items by key
+		ensure
+			result_exists: Result /= Void
+			total_items_preserved: (across
+					Result as rc
+				all
+					True
+				end) implies (across
+					Result as rc2
+				some
+					rc2.count > 0
+				end or target.is_empty)
+
+	partition (a_condition: SIMPLE_QUERY_CONDITION [G]): TUPLE [satisfying: ARRAYED_LIST [G]; not_satisfying: ARRAYED_LIST [G]]
+			-- Split into items that satisfy/don't satisfy condition
+		ensure
+			result_exists: Result /= Void
+			total_preserved: Result.satisfying.count + Result.not_satisfying.count = target.count
+			model_partition: list_model (Result.satisfying).count + list_model (Result.not_satisfying).count = model.count
+	
+feature -- Platform
+
+	Operating_environment: OPERATING_ENVIRONMENT
+			-- Objects available from the operating system
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			operating_environment_not_void: Result /= Void
+	
+feature -- Taking/Dropping
+
+	drop (n: INTEGER_32): ARRAYED_LIST [G]
+			-- All items except first `n`
+		require
+			non_negative: n >= 0
+		ensure
+			result_exists: Result /= Void
+			correct_count: Result.count = (target.count - n).max (0)
+
+	drop_while (a_condition: SIMPLE_QUERY_CONDITION [G]): ARRAYED_LIST [G]
+			-- Items after leading sequence satisfying `a_condition`
+		ensure
+			result_exists: Result /= Void
+			bounded: Result.count <= target.count
+
+	take (n: INTEGER_32): ARRAYED_LIST [G]
+			-- First `n` items (or all if fewer)
+		require
+			non_negative: n >= 0
+		ensure
+			result_exists: Result /= Void
+			bounded_count: Result.count <= n and Result.count <= target.count
+			exact_count: Result.count = n.min (target.count)
+
+	take_while (a_condition: SIMPLE_QUERY_CONDITION [G]): ARRAYED_LIST [G]
+			-- Leading items that satisfy `a_condition`
+		ensure
+			result_exists: Result /= Void
+			bounded: Result.count <= target.count
+			all_satisfy: across
+					Result as ic
+				all
+					a_condition.satisfied_by (ic)
+				end
+	
+invariant
+	target_exists: target /= Void
+	model_consistent: model.count = target.count
+
+		-- from ANY
+	reflexive_equality: standard_is_equal (Current)
+	reflexive_conformance: conforms_to (Current)
+
+end -- class SIMPLE_LIST_EXTENSIONS
+

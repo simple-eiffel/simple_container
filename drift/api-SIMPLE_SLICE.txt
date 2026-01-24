@@ -1,0 +1,330 @@
+note
+	description: "Array/list slice with lazy evaluation"
+
+class interface
+	SIMPLE_SLICE [G -> detachable separate ANY]
+
+create 
+	make (a_source: READABLE_INDEXABLE [G]; a_start, a_end: INTEGER_32)
+			-- Create slice from `a_start` to `a_end` (inclusive)
+		require
+			valid_start: a_start >= a_source.lower
+			valid_end: a_end <= a_source.upper
+			valid_range: a_start <= a_end + 1
+		ensure
+			source_set: source = a_source
+			start_set: start_index = a_start
+			end_set: end_index = a_end
+
+	make_from_end (a_source: READABLE_INDEXABLE [G]; a_start_from_end, a_count: INTEGER_32)
+			-- Create slice of `a_count` items starting `a_start_from_end` from end
+		require
+			non_negative_offset: a_start_from_end >= 0
+			positive_count: a_count > 0
+			valid_range: a_start_from_end + a_count <= (a_source.upper - a_source.lower + 1)
+		ensure
+			source_set: source = a_source
+			model_consistent: model.count = count
+
+feature -- Access
+
+	first: G
+			-- First item
+		require
+			not_empty: not is_empty
+		ensure
+			result_is_first: Result = model [1]
+
+	generating_type: TYPE [detachable SIMPLE_SLICE [G]]
+			-- Type of current object
+			-- (type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generating_type_not_void: Result /= Void
+
+	generator: STRING_8
+			-- Name of current object's generating class
+			-- (base class of the type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generator_not_void: Result /= Void
+			generator_not_empty: not Result.is_empty
+
+	item alias "[]" (i: INTEGER_32): G
+			-- Item at position `i` within slice (1-based)
+		require
+			valid_index: valid_index (i)
+		ensure
+			result_in_model: model.has (Result)
+			correct_item: Result = model [i]
+
+	last: G
+			-- Last item
+		require
+			not_empty: not is_empty
+		ensure
+			result_is_last: Result = model [count]
+	
+feature -- Measurement
+
+	count: INTEGER_32
+			-- Number of items in slice
+		ensure
+			non_negative: Result >= 0
+
+	is_empty: BOOLEAN
+			-- Is slice empty?
+		ensure
+			definition: Result = (count = 0)
+	
+feature -- Comparison
+
+	frozen deep_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void
+			-- or attached to isomorphic object structures?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			shallow_implies_deep: standard_equal (a, b) implies Result
+			both_or_none_void: (a = Void) implies (Result = (b = Void))
+			same_type: (Result and (a /= Void)) implies (b /= Void and then a.same_type (b))
+			symmetric: Result implies deep_equal (b, a)
+
+	frozen equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached
+			-- to objects considered equal?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.is_equal (b))
+
+	frozen is_deep_equal alias "≡≡≡" (other: SIMPLE_SLICE [G]): BOOLEAN
+			-- Are `Current` and `other` attached to isomorphic object structures?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			shallow_implies_deep: standard_is_equal (other) implies Result
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.is_deep_equal (Current)
+
+	is_equal (other: SIMPLE_SLICE [G]): BOOLEAN
+			-- Is `other` attached to an object considered
+			-- equal to current object?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			symmetric: Result implies other ~ Current
+			consistent: standard_is_equal (other) implies Result
+
+	frozen standard_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached to
+			-- field-by-field identical objects of the same type?
+			-- Always uses default object comparison criterion.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.standard_is_equal (b))
+
+	frozen standard_is_equal alias "≜" (other: SIMPLE_SLICE [G]): BOOLEAN
+			-- Is `other` attached to an object of the same type
+			-- as current object, and field-by-field identical to it?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.standard_is_equal (Current)
+	
+feature -- Status report
+
+	conforms_to (other: ANY): BOOLEAN
+			-- Does type of current object conform to type
+			-- of `other` (as per Eiffel: The Language, chapter 13)?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+
+	same_type (other: ANY): BOOLEAN
+			-- Is type of current object identical to type of `other`?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			definition: Result = (conforms_to (other) and other.conforms_to (Current))
+	
+feature -- Conversion
+
+	to_array: ARRAY [G]
+			-- Copy to array
+		ensure
+			result_exists: Result /= Void
+			same_count: Result.count = count
+
+	to_list: ARRAYED_LIST [G]
+			-- Copy to list
+		ensure
+			result_exists: Result /= Void
+			same_count: Result.count = count
+	
+feature -- Duplication
+
+	copy (other: SIMPLE_SLICE [G])
+			-- Update current object using fields of object attached
+			-- to `other`, so as to yield equal objects.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_equal: Current ~ other
+
+	frozen deep_copy (other: SIMPLE_SLICE [G])
+			-- Effect equivalent to that of:
+			--		`copy` (`other` . `deep_twin`)
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			deep_equal: deep_equal (Current, other)
+
+	frozen deep_twin: SIMPLE_SLICE [G]
+			-- New object structure recursively duplicated from Current.
+			-- (from ANY)
+		ensure -- from ANY
+			deep_twin_not_void: Result /= Void
+			deep_equal: deep_equal (Current, Result)
+
+	frozen standard_copy (other: SIMPLE_SLICE [G])
+			-- Copy every field of `other` onto corresponding field
+			-- of current object.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_standard_equal: standard_is_equal (other)
+
+	frozen standard_twin: SIMPLE_SLICE [G]
+			-- New object field-by-field identical to `other`.
+			-- Always uses default copying semantics.
+			-- (from ANY)
+		ensure -- from ANY
+			standard_twin_not_void: Result /= Void
+			equal: standard_equal (Result, Current)
+
+	frozen twin: SIMPLE_SLICE [G]
+			-- New object equal to `Current`
+			-- `twin` calls `copy`; to change copying/twinning semantics, redefine `copy`.
+			-- (from ANY)
+		ensure -- from ANY
+			twin_not_void: Result /= Void
+			is_equal: Result ~ Current
+	
+feature -- Basic operations
+
+	frozen default: detachable SIMPLE_SLICE [G]
+			-- Default value of object's type
+			-- (from ANY)
+
+	frozen default_pointer: POINTER
+			-- Default value of type `POINTER`
+			-- (Avoid the need to write `p`.`default` for
+			-- some `p` of type `POINTER`.)
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	default_rescue
+			-- Process exception for routines with no Rescue clause.
+			-- (Default: do nothing.)
+			-- (from ANY)
+
+	frozen do_nothing
+			-- Execute a null action.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+	
+feature -- Iteration
+
+	new_cursor: SIMPLE_SLICE_CURSOR [G]
+			-- Fresh cursor for iteration
+		ensure -- from ITERABLE
+			result_attached: Result /= Void
+	
+feature -- Model
+
+	model: MML_SEQUENCE [G]
+			-- Mathematical model of slice contents
+		ensure
+			count_matches: Result.count = count
+	
+feature -- Output
+
+	Io: STD_FILES
+			-- Handle to standard file setup
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			io_not_void: Result /= Void
+
+	out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			out_not_void: Result /= Void
+
+	print (o: detachable ANY)
+			-- Write terse external representation of `o`
+			-- on standard output.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	frozen tagged_out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			tagged_out_not_void: Result /= Void
+	
+feature -- Platform
+
+	Operating_environment: OPERATING_ENVIRONMENT
+			-- Objects available from the operating system
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			operating_environment_not_void: Result /= Void
+	
+feature -- Status Query
+
+	valid_index (i: INTEGER_32): BOOLEAN
+			-- Is `i` valid within slice?
+	
+feature -- Sub-slicing
+
+	sub_slice (a_start, a_end: INTEGER_32): SIMPLE_SLICE [G]
+			-- Sub-slice from `a_start` to `a_end`
+		require
+			valid_start: a_start >= 1
+			valid_end: a_end <= count
+			valid_range: a_start <= a_end + 1
+		ensure
+			result_exists: Result /= Void
+			correct_count: Result.count = a_end - a_start + 1
+	
+invariant
+	source_exists: source /= Void
+	count_consistent: count = (end_index - start_index + 1).max (0)
+	model_consistent: model.count = count
+
+		-- from ANY
+	reflexive_equality: standard_is_equal (Current)
+	reflexive_conformance: conforms_to (Current)
+
+end -- class SIMPLE_SLICE
+
